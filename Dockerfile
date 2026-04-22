@@ -2,7 +2,7 @@ FROM eclipse-temurin:17
 
 WORKDIR /app
 
-COPY despensa /app
+COPY . /app
 
 WORKDIR /app
 
