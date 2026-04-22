@@ -129,6 +129,19 @@
 </div>
 
 <body>
+<div id="resumen" style="display:flex; gap:10px; margin-bottom:20px;">
+    <div style="background:#4CAF50; color:white; padding:15px; border-radius:10px;">
+        📦 Productos: <span id="totalProductos">0</span>
+    </div>
+
+    <div style="background:#2196F3; color:white; padding:15px; border-radius:10px;">
+        📊 Stock total: <span id="stockTotal">0</span>
+    </div>
+
+    <div style="background:#f44336; color:white; padding:15px; border-radius:10px;">
+        ⚠️ Stock bajo: <span id="stockBajo">0</span>
+    </div>
+</div>
 
 <h2> Mi Despensa</h2>
 <button onclick="mostrarFormulario()"> Nuevo Producto</button>
@@ -308,6 +321,19 @@
     }
 
     cargarProductos();
+</script>
+<script>
+    function cargarResumen() {
+        fetch("/resumen")
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("totalProductos").innerText = data.totalProductos;
+                document.getElementById("stockTotal").innerText = data.stockTotal;
+                document.getElementById("stockBajo").innerText = data.stockBajo;
+            });
+    }
+
+    cargarResumen();
 </script>
 
 </body>

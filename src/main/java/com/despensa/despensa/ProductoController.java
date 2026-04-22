@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class ProductoController {
 
-    String url = "jdbc:mysql://localhost:3306/despensa_final";
-    String user = "root";
-    String pass = "";
+    String url = "jdbc:postgresql://dpg-d7k43e4p3tds73baj47g-a:5432/despensa_db";
+    String user = "despensa_db_user";
+    String pass = "jXzNHi4XSWcetOe83xaB7HHdMTbL2V6T";
 
     @GetMapping("/productos")
     public List<Map<String, Object>> productos() throws Exception {
@@ -32,6 +32,35 @@ public class ProductoController {
 
         con.close();
         return lista;
+    }
+    @GetMapping("/resumen")
+    public Map<String, Integer> resumen() throws Exception {
+
+        Connection con = DriverManager.getConnection(url, user, pass);
+
+        Map<String, Integer> datos = new HashMap<>();
+
+        // Total productos
+        Statement st1 = con.createStatement();
+        ResultSet rs1 = st1.executeQuery("SELECT COUNT(*) FROM productos");
+        rs1.next();
+        datos.put("totalProductos", rs1.getInt(1));
+
+        // Stock total
+        Statement st2 = con.createStatement();
+        ResultSet rs2 = st2.executeQuery("SELECT SUM(stock_actual) FROM productos");
+        rs2.next();
+        datos.put("stockTotal", rs2.getInt(1));
+
+        // Productos con stock bajo (<5)
+        Statement st3 = con.createStatement();
+        ResultSet rs3 = st3.executeQuery("SELECT COUNT(*) FROM productos WHERE stock_actual < 5");
+        rs3.next();
+        datos.put("stockBajo", rs3.getInt(1));
+
+        con.close();
+
+        return datos;
     }
     @PostMapping("/vender/{id}")
     public String vender(@PathVariable int id) throws Exception {
