@@ -62,6 +62,21 @@ public class ProductoController {
 
         return datos;
     }
+    @GetMapping("/productos/resumen")
+    public Map<String, Object> obtenerResumen() {
+        List<Producto> productos = productoRepository.findAll();
+
+        int totalProductos = productos.size();
+        int stockTotal = productos.stream().mapToInt(Producto::getCantidad).sum();
+        int stockBajo = (int) productos.stream().filter(p -> p.getCantidad() < 5).count();
+
+        Map<String, Object> resumen = new HashMap<>();
+        resumen.put("totalProductos", totalProductos);
+        resumen.put("stockTotal", stockTotal);
+        resumen.put("stockBajo", stockBajo);
+
+        return resumen;
+    }
     @PostMapping("/vender/{id}")
     public String vender(@PathVariable int id) throws Exception {
 
