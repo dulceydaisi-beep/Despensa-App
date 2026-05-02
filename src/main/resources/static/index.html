@@ -152,22 +152,22 @@
     <input id="categoria" placeholder="Categoría"><br>
     <button onclick="guardarProducto()">Guardar</button>
 </div>
-<div id="productos"></div>
+<ul id="productos"></ul>
 
 <script>
     const API = ""; // 🔥 ahora automático
 
     function cargarProductos() {
-        fetch(API + "/productos")
-            .then(r => r.json())
+        fetch("/productos")
+            .then(respone => respone.json())
             .then(data => {
-                let categorias = {};
+                console.log(data);
+
+                let lista = document.getElementById("productos");
+                lista.innerHTML = "";
 
                 data.forEach(p => {
-                    if (!categorias[p.categoria]) {
-                        categorias[p.categoria] = [];
-                    }
-                    categorias[p.categoria].push(p);
+                    lista.innerHTML += '<li>${p.nombre} - ${p.precio}</li>';
                 });
 
                 let html = "";
