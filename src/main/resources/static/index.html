@@ -167,7 +167,13 @@
                 lista.innerHTML = "";
 
                 data.forEach(p => {
-                    lista.innerHTML += '<li>${p.nombre} - ${p.precio}</li>';
+                    lista.innerHTML += `
+                         <div class="card">
+                             <div class="nombre">${p.nombre}</div>
+                             <div class="precio">$${p.precio}</div>
+                             <div class="stock">Stock: ${p.stock}</div>
+                         </div>
+                         `;
                 });
 
                 let html = "";
