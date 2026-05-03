@@ -1,8 +1,11 @@
 package com.despensa.despensa;
 
 import org.springframework.web.bind.annotation.*;
-        import java.sql.*;
-        import java.util.*;
+import org.springframework.beans.factory,annotation.Autowired;
+import java.sql.*;
+import java.util.*;
+import com.despensa.despensa.Producto;
+import com.despensa.despensa.ProductoRepository;
 
 @RestController
 public class ProductoController {
@@ -32,6 +35,8 @@ public class ProductoController {
 
         con.close();
         return lista;
+        @Autowired
+        private ProductoRepository productoRepository;
     }
     @GetMapping("/resumen")
     public Map<String, Integer> resumen() throws Exception {
@@ -162,3 +167,4 @@ public class ProductoController {
         return "OK";
     }
 }
+
