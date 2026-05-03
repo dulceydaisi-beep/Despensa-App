@@ -1,14 +1,18 @@
 package com.despensa.despensa;
 
 import org.springframework.web.bind.annotation.*;
-import org.springframework.beans.factory,annotation.Autowired;
+import org.springframework.beans.factory.annotation.Autowired;
 import java.sql.*;
 import java.util.*;
 import com.despensa.despensa.Producto;
 import com.despensa.despensa.ProductoRepository;
 
 @RestController
+@RequestMapping("/productos")
 public class ProductoController {
+
+    @Autowired
+    private ProductoRepository productoRepository;
 
     String url = "jdbc:postgresql://dpg-d7k43e4p3tds73baj47g-a:5432/despensa_db";
     String user = "despensa_db_user";
@@ -35,8 +39,7 @@ public class ProductoController {
 
         con.close();
         return lista;
-        @Autowired
-        private ProductoRepository productoRepository;
+
     }
     @GetMapping("/resumen")
     public Map<String, Integer> resumen() throws Exception {
@@ -67,28 +70,7 @@ public class ProductoController {
 
         return datos;
     }
-    @GetMapping("/productos/resumen")
-    public Map<String, Object> obtenerResumen() {
-        List<Producto> productos = productoRepository.findAll();
-
-        int totalProductos = productos.size();
-
-        int stockTotal = productos.stream()
-                .mapToInt(p ->p.getSock())
-                .sum();
-
-        int stockBajo = (int) productos.stream()
-                .filter(p -> p.getStock() <= 5)
-                .count();
-
-        Map<String, Object> res = new HashMap<>();
-        res.put("totalProductos", totalProductos);
-        res.put("stockTotal", stockTotal);
-        res.put("stockBajo", stockBajo);
-
-        return res;
-    }
-    @PostMapping("/vender/{id}")
+       @PostMapping("/vender/{id}")
     public String vender(@PathVariable int id) throws Exception {
 
         Connection con = DriverManager.getConnection(url, user, pass);
