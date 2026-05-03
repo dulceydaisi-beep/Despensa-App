@@ -341,9 +341,20 @@
     fetch("/productos/resumen")
         .then(res => res.json())
         .then(data => {
-            document.getElementById("totalProductos").innerText = data.totalProductos;
-            document.getElementById("stockTotal").innerText = data.stockTotal;
-            document.getElementById("stockBajo").innerText = data.stockBajo;
+            document.getElementById("totalProductos").innerText = data.length;
+
+            let totalStock = 0;
+            let bajo = 0;
+
+            data.forEach(P => {
+                totalStock += p.stock;
+
+                if (p.stock <= 5) {
+                    bajo++;
+                }
+            });
+            document.getElementById("stockTotal").innerText = totalStock;
+            document.getElementById("stockBajo").innerText = Bajo;
         });
 
     cargarResumen();
