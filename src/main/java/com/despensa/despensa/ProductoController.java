@@ -4,15 +4,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.sql.*;
 import java.util.*;
-import com.despensa.despensa.Producto;
-import com.despensa.despensa.ProductoRepository;
+
 
 @RestController
 @RequestMapping("/productos")
 public class ProductoController {
-
-    @Autowired
-    private ProductoRepository productoRepository;
 
     String url = "jdbc:postgresql://dpg-d7k43e4p3tds73baj47g-a:5432/despensa_db";
     String user = "despensa_db_user";
