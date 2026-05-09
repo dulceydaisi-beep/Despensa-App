@@ -137,7 +137,7 @@ CREATE TABLE IF NOT EXISTS productos (
         con.close();
         return "OK";
     }
-    @PostMapping("/nuevo")
+    @GetMapping("/nuevo")
     public String nuevoProducto(
             @RequestParam String nombre,
             @RequestParam double precio,
