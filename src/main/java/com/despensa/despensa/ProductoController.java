@@ -14,7 +14,7 @@ public class ProductoController {
     String user = "despensa_db_user";
     String pass = "jXzNHi4XSWcetOe83xaB7HHdMTbL2V6T";
 
-    @GetMapping("/productos")
+    @GetMapping
     public List<Map<String, Object>> productos() throws Exception {
 
         Connection con = DriverManager.getConnection(url, user, pass);
