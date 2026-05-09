@@ -18,6 +18,19 @@ public class ProductoController {
     public List<Map<String, Object>> productos() throws Exception {
 
         Connection con = DriverManager.getConnection(url, user, pass);
+        Statement crear = con.createStatement();
+
+        crear.execute("""
+CREATE TABLE IF NOT EXISTS productos (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(255),
+    categoria VARCHAR(255),
+    precio DOUBLE PRECISION,
+    stock_actual INT,
+    stock_minimo INT,
+    proveedor VARCHAR(255)
+)
+""");
         Statement st = con.createStatement();
         ResultSet rs = st.executeQuery("SELECT * FROM productos");
 
