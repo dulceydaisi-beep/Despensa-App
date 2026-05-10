@@ -1,363 +1,346 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Despensa</title>
+
+    <title>DespenChain</title>
+
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <style>
-        body {
-            font-family: Arial;
-            background: #f2f2f2;
-            padding: 10px;
+
+        body{
+            font-family:Arial;
+            background:#f5f5f5;
+            margin:0;
+            padding:15px;
         }
 
-        h2 {
-            text-align: center;
+        h1{
+            text-align:center;
         }
 
-        .card {
-            background: white;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        #resumen{
+            display:flex;
+            gap:10px;
+            margin-bottom:20px;
+            flex-wrap:wrap;
         }
 
-        .nombre {
-            font-size: 18px;
-            font-weight: bold;
+        .box{
+            flex:1;
+            min-width:150px;
+            color:white;
+            padding:15px;
+            border-radius:10px;
+            font-size:18px;
+            font-weight:bold;
         }
 
-        .precio {
-            color: green;
+        .verde{ background:#4CAF50; }
+        .azul{ background:#2196F3; }
+        .rojo{ background:#f44336; }
+
+        .card{
+            background:white;
+            padding:15px;
+            margin-bottom:15px;
+            border-radius:12px;
+            box-shadow:0 2px 6px rgba(0,0,0,0.2);
         }
 
-        .stock {
-            margin: 5px 0;
+        .nombre{
+            font-size:20px;
+            font-weight:bold;
         }
 
-        button {
-            width: 100%;
-            padding: 10px;
-            border: none;
-            border-radius: 8px;
-            background: #007bff;
-            color: white;
-            font-size: 16px;
+        .precio{
+            color:green;
+            font-size:18px;
+            margin-top:5px;
         }
 
-        button:disabled {
-            background: gray;
+        .stock{
+            margin-top:5px;
         }
 
-        .agotado {
-            color: red;
-            font-weight: bold;
+        button{
+            width:100%;
+            padding:10px;
+            margin-top:8px;
+            border:none;
+            border-radius:8px;
+            color:white;
+            font-size:15px;
+            cursor:pointer;
         }
+
+        .btn-vender{
+            background:#e53935;
+        }
+
+        .btn-stock{
+            background:#43a047;
+        }
+
+        .btn-precio{
+            background:#1e88e5;
+        }
+
+        .btn-nuevo{
+            background:#333;
+            margin-bottom:15px;
+        }
+
+        input{
+            width:100%;
+            padding:10px;
+            margin-top:5px;
+            border-radius:8px;
+            border:1px solid #ccc;
+        }
+
+        #mensaje{
+            display:none;
+            position:fixed;
+            top:20px;
+            left:50%;
+            transform:translateX(-50%);
+            background:green;
+            color:white;
+            padding:12px 20px;
+            border-radius:8px;
+        }
+
     </style>
-    <style>
-        body {
-            font-family: Arial;
-            background: #f5f5f5;
-            margin: 0;
-            padding: 10px;
-        }
 
-        h2 {
-            text-align: center;
-        }
-
-        h3 {
-            background: #333;
-            color: white;
-            padding: 8px;
-            border-radius: 8px;
-        }
-
-        .card {
-            background: white;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 12px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        }
-
-        .nombre {
-            font-size: 20px;
-            font-weight: bold;
-        }
-
-        .precio {
-            color: green;
-            font-size: 18px;
-        }
-
-        button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            border: none;
-            border-radius: 8px;
-            background: #1976d2;
-            color: white;
-            font-size: 16px;
-        }
-
-        button:disabled {
-            background: gray;
-        }
-
-        .agotado {
-            color: red;
-            font-weight: bold;
-        }
-    </style>
 </head>
-<div id="mensaje" style="
-    display:none;
-    position:fixed;
-    top:20px;
-    left:50%;
-    transform:translateX(-50%);
-    background:green;
-    color:white;
-    padding:10px 20px;
-    border-radius:8px;
-    z-index:1000;
-">
-    OK
-</div>
 
 <body>
-<div id="resumen" style="display:flex; gap:10px; margin-bottom:20px;">
-    <div style="background:#4CAF50; color:white; padding:15px; border-radius:10px;">
-        📦 Productos: <span id="totalProductos">0</span>
+
+<h1>🛒 DespenChain</h1>
+
+<div id="mensaje"></div>
+
+<div id="resumen">
+
+    <div class="box verde">
+        📦 Productos:
+        <span id="totalProductos">0</span>
     </div>
 
-    <div style="background:#2196F3; color:white; padding:15px; border-radius:10px;">
-        📊 Stock total: <span id="stockTotal">0</span>
+    <div class="box azul">
+        📊 Stock:
+        <span id="stockTotal">0</span>
     </div>
 
-    <div style="background:#f44336; color:white; padding:15px; border-radius:10px;">
-        ⚠️ Stock bajo: <span id="stockBajo">0</span>
+    <div class="box rojo">
+        ⚠️ Bajo:
+        <span id="stockBajo">0</span>
     </div>
+
 </div>
 
-<h2> Mi Despensa</h2>
-<button onclick="mostrarFormulario()"> Nuevo Producto</button>
-<div id="formulario" style="display:none;">
-    <input id="nombre" placeholder="Nombre"><br>
-    <input id="precio" placeholder="Precio"><br>
-    <input id="stock" placeholder="Stock"><br>
-    <input id="categoria" placeholder="Categoría"><br>
-    <button onclick="guardarProducto()">Guardar</button>
+<button class="btn-nuevo" onclick="mostrarFormulario()">
+    ➕ Nuevo Producto
+</button>
+
+<div id="formulario" style="display:none; margin-bottom:20px;">
+
+    <input id="nombre" placeholder="Nombre">
+    <input id="precio" placeholder="Precio">
+    <input id="stock" placeholder="Stock">
+    <input id="categoria" placeholder="Categoría">
+
+    <button class="btn-stock" onclick="guardarProducto()">
+        Guardar
+    </button>
+
 </div>
-<ul id="productos"></ul>
+
+<div id="productos"></div>
 
 <script>
-    const API = ""; // 🔥 ahora automático
 
-    function cargarProductos() {
-        fetch("/productos")
-            .then(respone => respone.json())
-            .then(data => {
-                console.log(data);
+    function mostrarMensaje(texto){
 
-                let lista = document.getElementById("productos");
-                lista.innerHTML = "";
-
-                data.forEach(p => {
-                    lista.innerHTML += `
-                         <div class="card">
-                             <div class="nombre">${p.nombre}</div>
-                             <div class="precio">$${p.precio}</div>
-                             <div class="stock">Stock: ${p.stock}</div>
-                         </div>
-                         `;
-                });
-
-                let html = "";
-
-                for (let cat in categorias) {
-
-                    let icono = "🛒";
-
-                    if (cat.toLowerCase().includes("lacteo")) icono = "🥛";
-                    if (cat.toLowerCase().includes("pan")) icono = "🍞";
-                    if (cat.toLowerCase().includes("almacen")) icono = "🏪";
-                    if (cat.toLowerCase().includes("bebida")) icono = "🥤";
-                    if (cat.toLowerCase().includes("snack")) icono = "🍪";
-
-                    html += `
-<h3 onclick="toggleCategoria('${cat}')" style="cursor:pointer;">
-        ${cat}
-    </h3>
-    <div id="cat-${cat.replace(/\s/g, '')}" style="display:none;">
-`;
-
-                    categorias[cat].forEach(p => {
-
-                        let agotado = p.stock <= 0;
-                        let bajo = p.stock > 0 && p.stock <= 5;
-
-                        html += `
-            <div class="card">
-                <div class="nombre">${p.nombre}</div>
-                <div class="precio">$${p.precio}</div>
-                <div class="stock">
-                    ${
-                            agotado
-                                ? '<span class="agotado">SIN STOCK</span>'
-                                : bajo
-                                    ? '<span style="color: orange; font-weight: bold;">POCO STOCK (' + p.stock + ')</span>'
-                                    : 'Stock: ' + p.stock
-                        }
-                </div>
-
-                <button onclick="vender(${p.id})" ${agotado ? 'disabled' : ''}>
-                    Vender
-                </button>
-
-                <button onclick="agregar(${p.id})">
-                    + Stock
-                </button>
-
-                <button onclick="editarPrecio(${p.id})">
-                    Cambiar Precio
-                </button>
-            </div>
-        `;
-                    });
-                    html += `</div>`;
-                }
-
-                document.getElementById("productos").innerHTML = html;
-
-                document.getElementById("productos").innerHTML = html;
-            });
-    }
-    function editarPrecio(id) {
-        let nuevo = document.getElementById("inputPrecio");
-
-        if (!nuevo) {
-            let input = document.createElement("input");
-            input.id = "inputPrecio";
-            input.placeholder = "Nuevo precio";
-            input.style.position = "fixed";
-            input.style.bottom = "20px";
-            input.style.left = "50%";
-            input.style.transform = "translateX(-50%)";
-            input.style.padding = "10px";
-            input.style.borderRadius = "8px";
-
-            document.body.appendChild(input);
-
-            input.focus();
-
-            input.addEventListener("keydown", function(e) {
-                if (e.key === "Enter") {
-                    enviarPrecio(id, input.value);
-                    input.remove();
-                }
-            });
-        }
-    }
-    function mostrarMensaje(texto) {
         let m = document.getElementById("mensaje");
+
         m.innerText = texto;
         m.style.display = "block";
 
         setTimeout(() => {
             m.style.display = "none";
-        }, 1500);
+        },1500);
     }
 
-    function vender(id) {
-        fetch(API + "/vender/" + id, { method: "POST" })
-            .then(() => {
-                mostrarMensaje("Venta realizada");
-                cargarProductos();
+    function mostrarFormulario(){
+
+        let f = document.getElementById("formulario");
+
+        if(f.style.display === "none"){
+            f.style.display = "block";
+        }else{
+            f.style.display = "none";
+        }
+    }
+
+    function cargarResumen(){
+
+        fetch("/productos/resumen")
+            .then(r => r.json())
+            .then(data => {
+
+                document.getElementById("totalProductos").innerText = data.totalProductos;
+                document.getElementById("stockTotal").innerText = data.stockTotal;
+                document.getElementById("stockBajo").innerText = data.stockBajo;
+
             });
     }
-    function agregar(id) {
-        fetch(API + "/agregar/" + id, { method: "POST" })
-            .then(() => {
-                mostrarMensaje("Stock agregado");
-                cargarProductos();
+
+    function cargarProductos(){
+
+        fetch("/productos")
+            .then(r => r.json())
+            .then(data => {
+
+                let html = "";
+
+                data.forEach(p => {
+
+                    let estado = "";
+
+                    if(p.stock <= 0){
+                        estado = "<span style='color:red;font-weight:bold;'>SIN STOCK</span>";
+                    }
+                    else if(p.stock <= 5){
+                        estado = "<span style='color:orange;font-weight:bold;'>POCO STOCK (" + p.stock + ")</span>";
+                    }
+                    else{
+                        estado = "Stock: " + p.stock;
+                    }
+
+                    html += `
+
+                        <div class="card">
+
+                            <div class="nombre">
+                                ${p.nombre}
+                            </div>
+
+                            <div>
+                                ${p.categoria}
+                            </div>
+
+                            <div class="precio">
+                                $${p.precio}
+                            </div>
+
+                            <div class="stock">
+                                ${estado}
+                            </div>
+
+                            <button class="btn-vender"
+                                onclick="vender(${p.id})">
+                                Vender
+                            </button>
+
+                            <button class="btn-stock"
+                                onclick="agregar(${p.id})">
+                                + Stock
+                            </button>
+
+                            <button class="btn-precio"
+                                onclick="editarPrecio(${p.id})">
+                                Cambiar Precio
+                            </button>
+
+                        </div>
+
+                    `;
+                });
+
+                document.getElementById("productos").innerHTML = html;
+
             });
     }
-    function enviarPrecio(id, precio) {
-        fetch(API + "/precio/" + id + "?precio=" + precio, {
-            method: "POST"
+
+    function vender(id){
+
+        fetch("/productos/vender/" + id,{
+            method:"POST"
         })
             .then(() => {
-                mostrarMensaje("Precio actualizado");
+
+                mostrarMensaje("Venta realizada");
+
                 cargarProductos();
+                cargarResumen();
+
             });
     }
-    function mostrarFormulario() {
-        document.getElementById("formulario").style.display = "block";
+
+    function agregar(id){
+
+        fetch("/productos/agregar/" + id,{
+            method:"POST"
+        })
+            .then(() => {
+
+                mostrarMensaje("Stock agregado");
+
+                cargarProductos();
+                cargarResumen();
+
+            });
     }
 
-    function guardarProducto() {
+    function editarPrecio(id){
+
+        let precio = prompt("Nuevo precio:");
+
+        if(precio){
+
+            fetch("/productos/precio/" + id + "?precio=" + precio,{
+                method:"POST"
+            })
+                .then(() => {
+
+                    mostrarMensaje("Precio actualizado");
+
+                    cargarProductos();
+
+                });
+        }
+    }
+
+    function guardarProducto(){
+
         let nombre = document.getElementById("nombre").value;
         let precio = document.getElementById("precio").value;
         let stock = document.getElementById("stock").value;
         let categoria = document.getElementById("categoria").value;
 
-        fetch(API + "/nuevo?nombre=" + encodeURIComponent(nombre) +
+        fetch("/productos/nuevo?nombre=" +
+            encodeURIComponent(nombre) +
             "&precio=" + precio +
             "&stock=" + stock +
-            "&categoria=" + encodeURIComponent(categoria), {
-            method: "POST"
-        })
+            "&categoria=" + encodeURIComponent(categoria),
+            {
+                method:"POST"
+            })
             .then(() => {
-                mostrarMensaje("Producto agregado");
-                cargarProductos();
-            });
-    }
-    function toggleCategoria(cat) {
-        let div = document.getElementById("cat-" + cat);
 
-        if (div.style.display === "none") {
-            div.style.display = "block";
-        } else {
-            div.style.display = "none";
-        }
+                mostrarMensaje("Producto agregado");
+
+                cargarProductos();
+                cargarResumen();
+
+            });
     }
 
     cargarProductos();
-</script>
-<script>
-    function cargarResumen() {
-        fetch("/resumen")
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById("totalProductos").innerText = data.totalProductos;
-                document.getElementById("stockTotal").innerText = data.stockTotal;
-                document.getElementById("stockBajo").innerText = data.stockBajo;
-            });
-    }
-    fetch("/productos/resumen")
-        .then(res => res.json())
-        .then(data => {
-            document.getElementById("totalProductos").innerText = data.length;
-
-            let totalStock = 0;
-            let bajo = 0;
-
-            data.forEach(P => {
-                totalStock += p.stock;
-
-                if (p.stock <= 5) {
-                    bajo++;
-                }
-            });
-            document.getElementById("stockTotal").innerText = totalStock;
-            document.getElementById("stockBajo").innerText = Bajo;
-        });
-
     cargarResumen();
+
 </script>
 
 </body>
