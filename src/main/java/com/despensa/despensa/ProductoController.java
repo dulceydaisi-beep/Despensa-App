@@ -161,7 +161,29 @@ CREATE TABLE IF NOT EXISTS productos (
         ps.executeUpdate();
 
         con.close();
+
+
         return "OK";
+
+
+    }
+
+    @GetMapping("/eliminar/{id}")
+    public String eliminar(@PathVariable int id) throws Exception {
+
+        Connection con = DriverManager.getConnection(url, user, pass);
+
+        PreparedStatement ps = con.prepareStatement(
+                "DELETE FROM productos WHERE id = ?"
+        );
+
+        ps.setInt(1, id);
+
+        ps.executeUpdate();
+
+        con.close();
+
+        return "Producto eliminado";
     }
 }
 

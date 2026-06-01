@@ -42,15 +42,17 @@
 
         .card{
             background:white;
-            padding:15px;
-            margin-bottom:15px;
-            border-radius:12px;
-            box-shadow:0 2px 6px rgba(0,0,0,0.2);
+            padding:20px;
+            margin-bottom:18px;
+            border-radius:18px;
+            box-shadow:0 6px 15px rgba(0,0,0,0.12);
+            border-left:6px solid #2196F3 ;
         }
 
         .nombre{
-            font-size:20px;
+            font-size:22px;
             font-weight:bold;
+            margin-bottom:5px;
         }
 
         .precio{
@@ -65,13 +67,15 @@
 
         button{
             width:100%;
-            padding:10px;
+            padding:12px;
             margin-top:8px;
             border:none;
-            border-radius:8px;
+            border-radius:12px;
             color:white;
             font-size:15px;
+            font-weight:bold;
             cursor:pointer;
+            transition: 0.2s;
         }
 
         .btn-vender{
@@ -85,10 +89,16 @@
         .btn-precio{
             background:#1e88e5;
         }
+        .btn-eliminar{
+            background:#616161;
+        }
 
         .btn-nuevo{
             background:#333;
             margin-bottom:15px;
+        }
+        .btn-nuevo:hover{
+            transform: scale(1.02);
         }
 
         input{
@@ -111,50 +121,74 @@
             border-radius:8px;
         }
 
+        @media (max-width: 600px) {
+
+            body{
+                padding:10px;
+            }
+            .box{
+                min-width: 100%;
+            }
+            .nombre{
+                font-size:20px;
+            }
+
+        }
+
     </style>
 
 </head>
 
 <body>
 
-<h1>🛒 DespenChain</h1>
+<h1> DespenChain</h1>
+
+<input
+        type="text"
+        id="buscar"
+        placeholder=" Buscar producto..."
+        onkeyup="cargarProductos()"
+/>
 
 <div id="mensaje"></div>
 
 <div id="resumen">
 
     <div class="box verde">
-        📦 Productos:
+         Productos:
         <span id="totalProductos">0</span>
     </div>
 
     <div class="box azul">
-        📊 Stock:
+         Stock:
         <span id="stockTotal">0</span>
     </div>
 
     <div class="box rojo">
-        ⚠️ Bajo:
+        ️ Bajo:
         <span id="stockBajo">0</span>
     </div>
 
 </div>
 
 <button class="btn-nuevo" onclick="mostrarFormulario()">
-    ➕ Nuevo Producto
+     Nuevo Producto
 </button>
 
-<div id="formulario" style="display:none; margin-bottom:20px;">
+<div id="formularioProducto"
+        style="display:none;background:#222;padding:15px;border-radius:10px;margin-bottom:20px;">
+    <h2 style="color:white;">Nuevo Producto</h2>
 
     <input id="nombre" placeholder="Nombre">
-    <input id="precio" placeholder="Precio">
-    <input id="stock" placeholder="Stock">
-    <input id="categoria" placeholder="Categoría">
+    <input id="categoria" placeholder="Categoria">
+    <input id="precio" type="number" placeholder="Precio">
+    <input id="stock" type="number" placeholder="Stock">
+    <input id="minimo" type="number" placeholder="Stock minimo">
 
-    <button class="btn-stock" onclick="guardarProducto()">
+    <button onclick="agregarProducto()"
+            style="background:green;color:white;padding:10px;border:none;border-radius:5px;">
         Guardar
     </button>
-
 </div>
 
 <div id="productos"></div>
@@ -172,15 +206,15 @@
             m.style.display = "none";
         },1500);
     }
-
     function mostrarFormulario(){
 
-        let f = document.getElementById("formulario");
 
-        if(f.style.display === "none"){
-            f.style.display = "block";
-        }else{
+        let f = document.getElementById("formularioProducto");
+
+        if(f.style.display === "block"){
             f.style.display = "none";
+        }else{
+            f.style.display = "block";
         }
     }
 
@@ -205,7 +239,15 @@
 
                 let html = "";
 
-                data.forEach(p => {
+                let texto = document
+                    .getElementById("buscar")
+                    .value
+                    .toLowerCase();
+
+                data
+                    .filter(p => p.nombre.toLowerCase().includes(texto))
+
+                    .forEach(p => {
 
                     let estado = "";
 
@@ -223,16 +265,24 @@
 
                         <div class="card">
 
-                            <div class="nombre">
-                                ${p.nombre}
-                            </div>
+                           <div class="nombre">
+                                ${p.nombre.toUpperCase()}
+                           </div>
 
-                            <div>
+                            <div style="
+                            display:inline-block;
+                            background:#e3f2fd;
+                            color:#1565c0;
+                             padding:4px 10px;
+                             border-radius:20px;
+                             font-size:13px;
+                             margin-top:5px;
+                              ">
                                 ${p.categoria}
                             </div>
 
                             <div class="precio">
-                                $${p.precio}
+                                  $${p.precio}
                             </div>
 
                             <div class="stock">
@@ -253,6 +303,11 @@
                                 onclick="editarPrecio(${p.id})">
                                 Cambiar Precio
                             </button>
+                            <button class="btn-eliminar"
+                                onclick="eliminarProducto(${p.id})">
+                            Eliminar
+                            </button>
+
 
                         </div>
 
@@ -340,6 +395,18 @@
 
     cargarProductos();
     cargarResumen();
+
+    async function agregarProducto() {
+
+            let nombre = document.getElementById("nombre").value;
+            let categoria = document.getElementById("categoria").value;
+            let precio = document.getElementById("precio").value;
+            let stock = document.getElementById("stock").value;
+
+            await fetch(`/productos/nuevo?nombre=${nombre}&precio=${precio}&stock=${stock}&categoria=${categoria}`);
+
+            location.reload();
+        }
 
 </script>
 
