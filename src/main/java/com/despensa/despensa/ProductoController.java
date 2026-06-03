@@ -10,9 +10,9 @@ import java.util.*;
 @RequestMapping("/productos")
 public class ProductoController {
 
-    String url = "jdbc:postgresql://dpg-d7k43e4p3tds73baj47g-a.oregon-postgres.render.com:5432/despensa_db";
-    String user = "despensa_db_user";
-    String pass = "jXzNHi4XSWcetOe83xaB7HHdMTbL2V6T";
+    String url = "jdbc:postgresql://ep-floral-firefly-apnwelcp-pooler.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require";
+    String user = "neondb_owner";
+    String pass = "npg_1QVuGXxneYI9";
 
     @GetMapping
     public List<Map<String, Object>> productos() throws Exception {
