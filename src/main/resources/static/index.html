@@ -165,11 +165,18 @@
     </div>
 
     <div class="box rojo">
-        ️ Bajo:
+        ️ Stock Bajo:
         <span id="stockBajo">0</span>
     </div>
+         class="box verde">
+             Vendido<br>
+            <span id="totalVendido">0</span>
+        </div>
 
-</div>
+        <div class="box azul">
+             Ventas<br>
+            <span id="cantidadVentas">0</span>
+        </div>
 
 <button class="btn-nuevo" onclick="mostrarFormulario()">
      Nuevo Producto
@@ -229,6 +236,15 @@
                 document.getElementById("stockBajo").innerText = data.stockBajo;
 
             });
+
+        fetch("/productos/resumenVentas")
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById("totalVendido").innerText =
+                    "$" + data.totalVendido;
+                document.getElementById("cantidadVentas").innerText =
+                    data.cantidadVentas;
+            })
     }
 
     function cargarProductos(){
