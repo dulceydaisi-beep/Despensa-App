@@ -348,27 +348,39 @@
         }
     }
 
-    async function guardarProducto() {
+    function guardarProducto() {
         let nombre = document.getElementById("nombre").value.trim();
         let categoria = document.getElementById("categoria").value.trim();
-        let precio = parseFloat(document.getElementById("precio").value);
-        let stock = parseInt(document.getElementById("stock").value);
-        let minimoInput = document.getElementById("minimo").value;
-        let stockMinimo = minimoInput ? parseInt(minimoInput) : 5;
+        let precio = document.getElementById("precio").value;
+        let stock = document.getElementById("stock").value;
 
-        // Validación básica
-        if (!nombre || isNaN(precio) || isNaN(stock)) {
-            alert("Por favor completá los campos obligatorios: Nombre, Precio y Stock.");
+        if (!nombre || !precio || !stock) {
+            alert("Por favor completá Nombre, Precio y Stock.");
             return;
         }
 
-        let producto = {
-            nombre: nombre,
-            categoria: categoria || "Gral",
-            precio: precio,
-            stock: stock,
-            stockMinimo: stockMinimo
-        };
+        // Llama directamente al @GetMapping("/nuevo") de tu Java
+        fetch(`/productos/nuevo?nombre=${encodeURIComponent(nombre)}&precio=${precio}&stock=${stock}&categoria=${encodeURIComponent(categoria || 'Gral')}`)
+            .then(r => r.text())
+            .then(() => {
+                mostrarMensaje("Producto guardado correctamente");
+                mostrarFormulario(false);
+
+                // Limpia el formulario
+                document.getElementById("nombre").value = "";
+                document.getElementById("categoria").value = "";
+                document.getElementById("precio").value = "";
+                document.getElementById("stock").value = "";
+
+                // Actualiza la pantalla
+                cargarProductos();
+                cargarResumen();
+            })
+            .catch(error => {
+                console.error("Error al guardar:", error);
+                alert("Error al conectar con el servidor.");
+            });
+    }
 
         try {
             // Intento 1: Envío estructurado JSON (Recomendado)
