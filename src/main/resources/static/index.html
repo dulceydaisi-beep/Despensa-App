@@ -348,28 +348,63 @@
         }
     }
 
-    function guardarProducto() {
-        let nombre = document.getElementById("nombre").value;
-        let categoria = document.getElementById("categoria").value;
-        let precio = document.getElementById("precio").value;
-        let stock = document.getElementById("stock").value;
+    async function guardarProducto() {
+        let nombre = document.getElementById("nombre").value.trim();
+        let categoria = document.getElementById("categoria").value.trim();
+        let precio = parseFloat(document.getElementById("precio").value);
+        let stock = parseInt(document.getElementById("stock").value);
+        let minimoInput = document.getElementById("minimo").value;
+        let stockMinimo = minimoInput ? parseInt(minimoInput) : 5;
 
-        fetch(`/productos/nuevo?nombre=${encodeURIComponent(nombre)}&precio=${precio}&stock=${stock}&categoria=${encodeURIComponent(categoria)}`, {
-            method: "POST"
-        }).then(() => {
-            mostrarMensaje("Producto guardado");
+        // Validación básica
+        if (!nombre || isNaN(precio) || isNaN(stock)) {
+            alert("Por favor completá los campos obligatorios: Nombre, Precio y Stock.");
+            return;
+        }
+
+        let producto = {
+            nombre: nombre,
+            categoria: categoria || "Gral",
+            precio: precio,
+            stock: stock,
+            stockMinimo: stockMinimo
+        };
+
+        try {
+            // Intento 1: Envío estructurado JSON (Recomendado)
+            let res = await fetch("/productos/nuevo", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(producto)
+            });
+
+            // Si la API responde con la URL vieja tipo query params, hacemos el fallback automático
+            if (!res.ok) {
+                await fetch(`/productos/nuevo?nombre=${encodeURIComponent(nombre)}&precio=${precio}&stock=${stock}&categoria=${encodeURIComponent(categoria)}`, {
+                    method: "POST"
+                });
+            }
+
+            mostrarMensaje("Producto guardado correctamente");
             mostrarFormulario(false);
+
             // Limpiar inputs
             document.getElementById("nombre").value = "";
             document.getElementById("categoria").value = "";
             document.getElementById("precio").value = "";
             document.getElementById("stock").value = "";
+            document.getElementById("minimo").value = "";
 
             cargarProductos();
             cargarResumen();
-        });
-    }
 
+        } catch (error) {
+            console.error("Error al guardar producto:", error);
+            alert("Hubo un error al guardar el producto. Verificá la consola o la conexión.");
+        }
+    }
     // Carga inicial
     cargarProductos();
     cargarResumen();
