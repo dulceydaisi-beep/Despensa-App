@@ -360,7 +360,8 @@
         }
 
         // Llama directamente al @GetMapping("/nuevo") de tu Java
-        fetch(`/productos/nuevo?nombre=${encodeURIComponent(nombre)}&precio=${precio}&stock=${stock}&categoria=${encodeURIComponent(categoria || 'Gral')}`)
+        let url = `/productos/nuevo?nombre=${encodeURIComponent(nombre)}&precio=${precio}&stock=${stock}&categoria=${encodeURIComponent(categoria || 'Gral')}`;
+        fetch(url)
             .then(r => r.text())
             .then(() => {
                 mostrarMensaje("Producto guardado correctamente");

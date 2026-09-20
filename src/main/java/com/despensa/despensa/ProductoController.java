@@ -13,35 +13,11 @@ public class ProductoController {
     String url = "jdbc:postgresql://ep-floral-firefly-apnwelcp-pooler.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require";
     String user = "neondb_owner";
     String pass = "npg_1QVuGXxneYI9";
-
     @GetMapping
     public List<Map<String, Object>> productos() throws Exception {
-
         Connection con = DriverManager.getConnection(url, user, pass);
-        Statement crear = con.createStatement();
-
-        crear.execute("""
-CREATE TABLE IF NOT EXISTS productos (
-    id SERIAL PRIMARY KEY,
-    nombre VARCHAR(255),
-    categoria VARCHAR(255),
-    precio DOUBLE PRECISION,
-    stock_actual INT,
-    stock_minimo INT,
-    proveedor VARCHAR(255)
-)
-""");
-        crear.execute("""
-CREATE TABLE IF NOT EXISTS ventas (
-    id SERIAL PRIMARY KEY,
-    producto_id INT,
-    nombre_producto VARCHAR(255),
-    precio DOUBLE PRECISION,
-    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)
-""");
         Statement st = con.createStatement();
-        ResultSet rs = st.executeQuery("SELECT * FROM productos");
+        ResultSet rs = st.executeQuery("SELECT * FROM productos ORDER BY id DESC");
 
         List<Map<String, Object>> lista = new ArrayList<>();
 
@@ -51,14 +27,15 @@ CREATE TABLE IF NOT EXISTS ventas (
             p.put("nombre", rs.getString("nombre"));
             p.put("precio", rs.getDouble("precio"));
             p.put("stock", rs.getInt("stock_actual"));
+            p.put("stockMinimo", rs.getInt("stock_minimo"));
             p.put("categoria", rs.getString("categoria"));
             lista.add(p);
         }
 
         con.close();
         return lista;
-
     }
+
     @GetMapping("/resumen")
     public Map<String, Integer> resumen() throws Exception {
 
@@ -183,8 +160,8 @@ CREATE TABLE IF NOT EXISTS ventas (
         ps.setString(2, categoria);
         ps.setDouble(3, precio);
         ps.setInt(4, stock);
-        ps.setInt(5, 0); // stock mínimo default
-        ps.setString(6, ""); // proveedor vacío
+        ps.setInt(5, 2); // stock mínimo default
+        ps.setString(6, "general"); // proveedor vacío
 
         ps.executeUpdate();
 
