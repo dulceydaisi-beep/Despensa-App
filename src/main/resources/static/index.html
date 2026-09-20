@@ -240,7 +240,12 @@
     }
 
     function mostrarFormulario(ver) {
-        document.getElementById("formularioProducto").style.display = ver ? "flex" : "none";
+        let f = document.getElementById("formularioProducto");
+        if (f.style.display == "none" || f.style.display === "") {
+            f.style.display = "flex";
+        } else {
+            f.style.display = "none";
+        }
     }
 
     function cargarResumen() {
