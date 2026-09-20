@@ -265,8 +265,18 @@
         fetch("/productos")
             .then(r => r.json())
             .then(data => {
+                console.log("datos recibidos del servidor:", data);
                 productosCache = data;
-                renderizarProductos(data);
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    document.getElementById("productos").innerHTML = "<p style='text-align:center; color:#666;'>no hay productos  aun.</p>";
+                }else {
+                    renderizarProductos(data);
+                }
+            })
+            .catch(error => {
+                console.error("error al cargar productos: ", error);
+                document.getElementById("productos").innerHTML = "<p style='text-align:center; color:red;'>error al conectar con la base de datos.</p>";
             });
     }
 
