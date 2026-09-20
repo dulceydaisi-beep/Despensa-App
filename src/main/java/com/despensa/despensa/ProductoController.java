@@ -9,9 +9,9 @@ import java.util.*;
 public class ProductoController {
 
     // === AQUÍ PEGAS TUS DATOS DE NEON ===
-    private final String url = "jdbc:postgresql://ep-example-123456.us-east-2.aws.neon.tech/neondb?sslmode=require";
+    private final String url = "jdbc:postgresql://ep-floral-firefly-apnwelcp-pooler.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require";
     private final String user = "neondb_owner";
-    private final String pass = "npg_A1B2c3D4e5F6";
+    private final String pass = "npg_63PKdETYFBCI";
 
     private Connection getConnection() throws Exception {
         return DriverManager.getConnection(url, user, pass);
