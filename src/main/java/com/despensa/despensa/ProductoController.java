@@ -8,20 +8,13 @@ import java.util.*;
 @RequestMapping("/productos")
 public class ProductoController {
 
-    private String getUrl() {
-        return System.getenv("SPRING_DATASOURCE_URL");
-    }
-
-    private String getUser() {
-        return System.getenv("SPRING_DATASOURCE_USERNAME");
-    }
-
-    private String getPass() {
-        return System.getenv("SPRING_DATASOURCE_PASSWORD");
-    }
+    // === AQUÍ PEGAS TUS DATOS DE NEON ===
+    private final String url = "jdbc:postgresql://ep-example-123456.us-east-2.aws.neon.tech/neondb?sslmode=require";
+    private final String user = "neondb_owner";
+    private final String pass = "npg_A1B2c3D4e5F6";
 
     private Connection getConnection() throws Exception {
-        return DriverManager.getConnection(getUrl(), getUser(), getPass());
+        return DriverManager.getConnection(url, user, pass);
     }
 
     private void inicializarBaseDatos() {
