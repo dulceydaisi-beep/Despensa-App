@@ -241,11 +241,7 @@
 
     function mostrarFormulario(ver) {
         let f = document.getElementById("formularioProducto");
-        if (f.style.display == "none" || f.style.display === "") {
-            f.style.display = "flex";
-        } else {
-            f.style.display = "none";
-        }
+        f.style.display = ver ? "flex" : "none";
     }
 
     function cargarResumen() {
@@ -286,7 +282,7 @@
             let estado = "";
             if (p.stock <= 0) {
                 estado = "<span style='color:red;font-weight:bold;'>❌ SIN STOCK</span>";
-            } else if (p.stock <= (p.stockMinimo || 5)) {
+            } else if (p.stock <= (p.stockMinimo || 2)) {
                 estado = `<span style='color:orange;font-weight:bold;'>⚠️ POCO STOCK (${p.stock})</span>`;
             } else {
                 estado = `Stock: <b>${p.stock}</b>`;
@@ -358,27 +354,29 @@
         let categoria = document.getElementById("categoria").value.trim();
         let precio = document.getElementById("precio").value;
         let stock = document.getElementById("stock").value;
+        let minimo = document.getElementById("minimo").value || 2;
 
         if (!nombre || !precio || !stock) {
             alert("Por favor completá Nombre, Precio y Stock.");
             return;
         }
 
-        // Llama directamente al @GetMapping("/nuevo") de tu Java
-        let url = `/productos/nuevo?nombre=${encodeURIComponent(nombre)}&precio=${precio}&stock=${stock}&categoria=${encodeURIComponent(categoria || 'Gral')}`;
+        let url = `/productos/nuevo?nombre=${encodeURIComponent(nombre)}&precio=${precio}&stock=${stock}&categoria=${encodeURIComponent(categoria || 'Gral')}&minimo=${minimo}`;
+
         fetch(url)
             .then(r => r.text())
             .then(() => {
                 mostrarMensaje("Producto guardado correctamente");
                 mostrarFormulario(false);
 
-                // Limpia el formulario
+                // Limpia los inputs
                 document.getElementById("nombre").value = "";
                 document.getElementById("categoria").value = "";
                 document.getElementById("precio").value = "";
                 document.getElementById("stock").value = "";
+                document.getElementById("minimo").value = "";
 
-                // Actualiza la pantalla
+                // Actualiza la interfaz
                 cargarProductos();
                 cargarResumen();
             })
@@ -388,42 +386,7 @@
             });
     }
 
-        try {
-            // Intento 1: Envío estructurado JSON (Recomendado)
-            let res = await fetch("/productos/nuevo", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(producto)
-            });
-
-            // Si la API responde con la URL vieja tipo query params, hacemos el fallback automático
-            if (!res.ok) {
-                await fetch(`/productos/nuevo?nombre=${encodeURIComponent(nombre)}&precio=${precio}&stock=${stock}&categoria=${encodeURIComponent(categoria)}`, {
-                    method: "POST"
-                });
-            }
-
-            mostrarMensaje("Producto guardado correctamente");
-            mostrarFormulario(false);
-
-            // Limpiar inputs
-            document.getElementById("nombre").value = "";
-            document.getElementById("categoria").value = "";
-            document.getElementById("precio").value = "";
-            document.getElementById("stock").value = "";
-            document.getElementById("minimo").value = "";
-
-            cargarProductos();
-            cargarResumen();
-
-        } catch (error) {
-            console.error("Error al guardar producto:", error);
-            alert("Hubo un error al guardar el producto. Verificá la consola o la conexión.");
-        }
-    }
-    // Carga inicial
+    // Carga inicial al entrar
     cargarProductos();
     cargarResumen();
 </script>

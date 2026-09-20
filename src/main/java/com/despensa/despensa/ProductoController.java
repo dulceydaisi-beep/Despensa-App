@@ -1,20 +1,51 @@
 package com.despensa.despensa;
 
 import org.springframework.web.bind.annotation.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import java.sql.*;
 import java.util.*;
-
 
 @RestController
 @RequestMapping("/productos")
 public class ProductoController {
 
-    String url = "jdbc:postgresql://ep-floral-firefly-apnwelcp-pooler.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require";
-    String user = "neondb_owner";
-    String pass = "npg_1QVuGXxneYI9";
+    private final String url = System.getenv("SPRING_DATASOURCE_URL");
+    private final String user = System.getenv("SPRING_DATASOURCE_USERNAME");
+    private final String pass = System.getenv("SPRING_DATASOURCE_PASSWORD");
+
+    // Inicializa la estructura de la base de datos si no existe
+    private void inicializarBaseDatos() {
+        try (Connection con = DriverManager.getConnection(url, user, pass);
+             Statement st = con.createStatement()) {
+
+            st.execute("""
+                CREATE TABLE IF NOT EXISTS productos (
+                    id SERIAL PRIMARY KEY,
+                    nombre VARCHAR(255),
+                    categoria VARCHAR(255),
+                    precio DOUBLE PRECISION,
+                    stock_actual INT,
+                    stock_minimo INT,
+                    proveedor VARCHAR(255)
+                )
+            """);
+
+            st.execute("""
+                CREATE TABLE IF NOT EXISTS ventas (
+                    id SERIAL PRIMARY KEY,
+                    producto_id INT,
+                    nombre_producto VARCHAR(255),
+                    precio DOUBLE PRECISION,
+                    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     @GetMapping
     public List<Map<String, Object>> productos() throws Exception {
+        inicializarBaseDatos();
         Connection con = DriverManager.getConnection(url, user, pass);
         Statement st = con.createStatement();
         ResultSet rs = st.executeQuery("SELECT * FROM productos ORDER BY id DESC");
@@ -36,120 +67,16 @@ public class ProductoController {
         return lista;
     }
 
-    @GetMapping("/resumen")
-    public Map<String, Integer> resumen() throws Exception {
-
-        Connection con = DriverManager.getConnection(url, user, pass);
-
-        Map<String, Integer> datos = new HashMap<>();
-
-        // Total productos
-        Statement st1 = con.createStatement();
-        ResultSet rs1 = st1.executeQuery("SELECT COUNT(*) FROM productos");
-        rs1.next();
-        datos.put("totalProductos", rs1.getInt(1));
-
-        // Stock total
-        Statement st2 = con.createStatement();
-        ResultSet rs2 = st2.executeQuery("SELECT SUM(stock_actual) FROM productos");
-        rs2.next();
-        datos.put("stockTotal", rs2.getInt(1));
-
-        // Productos con stock bajo (<5)
-        Statement st3 = con.createStatement();
-        ResultSet rs3 = st3.executeQuery("SELECT COUNT(*) FROM productos WHERE stock_actual < 5");
-        rs3.next();
-        datos.put("stockBajo", rs3.getInt(1));
-
-        con.close();
-
-        return datos;
-    }
-    @PostMapping("/vender/{id}")
-    public String vender(@PathVariable int id) throws Exception {
-
-        Connection con = DriverManager.getConnection(url, user, pass);
-
-        PreparedStatement ps = con.prepareStatement(
-                "SELECT * FROM productos WHERE id = ?"
-        );
-
-        ps.setInt(1, id);
-
-        ResultSet rs = ps.executeQuery();
-
-        if (rs.next()) {
-
-            int stock = rs.getInt("stock_actual");
-
-            if (stock > 0) {
-
-                String nombre = rs.getString("nombre");
-                double precio = rs.getDouble("precio");
-
-                // Guardar venta
-                PreparedStatement venta = con.prepareStatement(
-                        "INSERT INTO ventas(nombre_producto, precio) VALUES (?, ?)"
-                );
-
-                venta.setString(1, nombre);
-                venta.setDouble(2, precio);
-
-                venta.executeUpdate();
-
-                System.out.println("VENTA GUARDADA: " + nombre);
-
-                // Descontar stock
-                PreparedStatement ps2 = con.prepareStatement(
-                        "UPDATE productos SET stock_actual = stock_actual - 1 WHERE id = ?"
-                );
-
-                ps2.setInt(1, id);
-                ps2.executeUpdate();
-            }
-        }
-
-        con.close();
-
-        return "OK";
-    }
-    @PostMapping("/agregar/{id}")
-    public String agregarStock(@PathVariable int id) throws Exception {
-
-        Connection con = DriverManager.getConnection(url, user, pass);
-
-        PreparedStatement ps = con.prepareStatement(
-                "UPDATE productos SET stock_actual = stock_actual + 1 WHERE id = ?"
-        );
-        ps.setInt(1, id);
-        ps.executeUpdate();
-
-        con.close();
-        return "OK";
-    }
-    @PostMapping("/precio/{id}")
-    public String cambiarPrecio(@PathVariable int id, @RequestParam double precio) throws Exception {
-
-        Connection con = DriverManager.getConnection(url, user, pass);
-
-        PreparedStatement ps = con.prepareStatement(
-                "UPDATE productos SET precio = ? WHERE id = ?"
-        );
-        ps.setDouble(1, precio);
-        ps.setInt(2, id);
-        ps.executeUpdate();
-
-        con.close();
-        return "OK";
-    }
     @GetMapping("/nuevo")
     public String nuevoProducto(
             @RequestParam String nombre,
             @RequestParam double precio,
             @RequestParam int stock,
-            @RequestParam String categoria
+            @RequestParam(defaultValue = "Gral") String categoria,
+            @RequestParam(defaultValue = "2") int minimo
     ) throws Exception {
 
+        inicializarBaseDatos();
         Connection con = DriverManager.getConnection(url, user, pass);
 
         PreparedStatement ps = con.prepareStatement(
@@ -160,132 +87,116 @@ public class ProductoController {
         ps.setString(2, categoria);
         ps.setDouble(3, precio);
         ps.setInt(4, stock);
-        ps.setInt(5, 2); // stock mínimo default
-        ps.setString(6, "general"); // proveedor vacío
+        ps.setInt(5, minimo);
+        ps.setString(6, "General");
 
         ps.executeUpdate();
-
-        con.close();
-
-
-        return "OK";
-    }
-    @GetMapping("/ventas")
-    public List<Map<String, Object>> ventas() throws Exception {
-
-        Connection con = DriverManager.getConnection(url, user, pass);
-
-        Statement st = con.createStatement();
-
-        ResultSet rs = st.executeQuery(
-                "SELECT * FROM ventas ORDER BY fecha DESC"
-        );
-
-        List<Map<String, Object>> lista = new ArrayList<>();
-
-        while(rs.next()){
-
-            Map<String, Object> v = new HashMap<>();
-
-            v.put("id", rs.getInt("id"));
-            v.put("producto", rs.getString("nombre_producto"));
-            v.put("precio", rs.getDouble("precio"));
-            v.put("fecha", rs.getTimestamp("fecha"));
-
-            lista.add(v);
-        }
-
-        con.close();
-
-        return lista;
-    }
-    @GetMapping("/testventa")
-    public String testventa() throws Exception {
-
-        Connection con = DriverManager.getConnection(url, user, pass);
-
-        PreparedStatement ps = con.prepareStatement(
-                "INSERT INTO ventas(nombre_producto, precio) VALUES (?, ?)"
-        );
-
-        ps.setString(1, "PRUEBA");
-        ps.setDouble(2, 123);
-
-        ps.executeUpdate();
-
         con.close();
 
         return "OK";
     }
 
-    @GetMapping("/debugventas")
-    public String debugVentas() throws Exception {
-
+    @PostMapping("/vender/{id}")
+    public String vender(@PathVariable int id) throws Exception {
         Connection con = DriverManager.getConnection(url, user, pass);
 
-        Statement st = con.createStatement();
+        PreparedStatement psSel = con.prepareStatement("SELECT nombre, precio, stock_actual FROM productos WHERE id = ?");
+        psSel.setInt(1, id);
+        ResultSet rs = psSel.executeQuery();
 
-        ResultSet rs = st.executeQuery("""
-        SELECT column_name
-        FROM information_schema.columns
-        WHERE table_name = 'ventas'
-    """);
+        if (rs.next()) {
+            int stockActual = rs.getInt("stock_actual");
+            String nombre = rs.getString("nombre");
+            double precio = rs.getDouble("precio");
 
-        StringBuilder sb = new StringBuilder();
+            if (stockActual > 0) {
+                PreparedStatement psUpd = con.prepareStatement("UPDATE productos SET stock_actual = stock_actual - 1 WHERE id = ?");
+                psUpd.setInt(1, id);
+                psUpd.executeUpdate();
 
-        while(rs.next()){
-            sb.append(rs.getString(1)).append("<br>");
+                PreparedStatement psVenta = con.prepareStatement("INSERT INTO ventas(producto_id, nombre_producto, precio) VALUES (?, ?, ?)");
+                psVenta.setInt(1, id);
+                psVenta.setString(2, nombre);
+                psVenta.setDouble(3, precio);
+                psVenta.executeUpdate();
+            }
         }
 
         con.close();
+        return "OK";
+    }
 
-        return sb.toString();
+    @PostMapping("/agregar/{id}")
+    public String agregarStock(@PathVariable int id) throws Exception {
+        Connection con = DriverManager.getConnection(url, user, pass);
+        PreparedStatement ps = con.prepareStatement("UPDATE productos SET stock_actual = stock_actual + 1 WHERE id = ?");
+        ps.setInt(1, id);
+        ps.executeUpdate();
+        con.close();
+        return "OK";
+    }
+
+    @PostMapping("/precio/{id}")
+    public String editarPrecio(@PathVariable int id, @RequestParam double precio) throws Exception {
+        Connection con = DriverManager.getConnection(url, user, pass);
+        PreparedStatement ps = con.prepareStatement("UPDATE productos SET precio = ? WHERE id = ?");
+        ps.setDouble(1, precio);
+        ps.setInt(2, id);
+        ps.executeUpdate();
+        con.close();
+        return "OK";
+    }
+
+    @DeleteMapping("/eliminar/{id}")
+    public String eliminarProducto(@PathVariable int id) throws Exception {
+        Connection con = DriverManager.getConnection(url, user, pass);
+        PreparedStatement ps = con.prepareStatement("DELETE FROM productos WHERE id = ?");
+        ps.setInt(1, id);
+        ps.executeUpdate();
+        con.close();
+        return "OK";
+    }
+
+    @GetMapping("/resumen")
+    public Map<String, Object> resumen() throws Exception {
+        inicializarBaseDatos();
+        Connection con = DriverManager.getConnection(url, user, pass);
+        Statement st = con.createStatement();
+
+        ResultSet rs1 = st.executeQuery("SELECT COUNT(*), COALESCE(SUM(stock_actual), 0) FROM productos");
+        rs1.next();
+        int totalProductos = rs1.getInt(1);
+        int stockTotal = rs1.getInt(2);
+
+        ResultSet rs2 = st.executeQuery("SELECT COUNT(*) FROM productos WHERE stock_actual <= stock_minimo");
+        rs2.next();
+        int stockBajo = rs2.getInt(1);
+
+        Map<String, Object> res = new HashMap<>();
+        res.put("totalProductos", totalProductos);
+        res.put("stockTotal", stockTotal);
+        res.put("stockBajo", stockBajo);
+
+        con.close();
+        return res;
     }
 
     @GetMapping("/resumenVentas")
     public Map<String, Object> resumenVentas() throws Exception {
-
+        inicializarBaseDatos();
         Connection con = DriverManager.getConnection(url, user, pass);
+        Statement st = con.createStatement();
 
-        Map<String, Object> datos = new HashMap<>();
+        ResultSet rs = st.executeQuery("SELECT COUNT(*), COALESCE(SUM(precio), 0) FROM ventas");
+        rs.next();
+        int cantidadVentas = rs.getInt(1);
+        double totalVendido = rs.getDouble(2);
 
-        Statement st1 = con.createStatement();
-        ResultSet rs1 = st1.executeQuery(
-                "SELECT COUNT(*) FROM ventas"
-        );
-
-        rs1.next();
-        datos.put("cantidadVentas", rs1.getInt(1));
-
-        Statement st2 = con.createStatement();
-        ResultSet rs2 = st2.executeQuery(
-                "SELECT COALESCE(SUM(precio),0) FROM ventas"
-        );
-
-        rs2.next();
-        datos.put("totalVendido", rs2.getDouble(1));
+        Map<String, Object> res = new HashMap<>();
+        res.put("cantidadVentas", cantidadVentas);
+        res.put("totalVendido", totalVendido);
 
         con.close();
-
-        return datos;
-    }
-
-    @GetMapping("/eliminar/{id}")
-    public String eliminar(@PathVariable int id) throws Exception {
-
-        Connection con = DriverManager.getConnection(url, user, pass);
-
-        PreparedStatement ps = con.prepareStatement(
-                "DELETE FROM productos WHERE id = ?"
-        );
-
-        ps.setInt(1, id);
-
-        ps.executeUpdate();
-
-        con.close();
-
-        return "Producto eliminado";
+        return res;
     }
 }
-
