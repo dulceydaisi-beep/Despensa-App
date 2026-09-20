@@ -354,17 +354,32 @@
         let categoria = document.getElementById("categoria").value.trim();
         let precio = document.getElementById("precio").value;
         let stock = document.getElementById("stock").value;
-        let minimo = document.getElementById("minimo").value || 2;
+        let minimo = document.getElementById("minimo").value;
 
         if (!nombre || !precio || !stock) {
             alert("Por favor completá Nombre, Precio y Stock.");
             return;
         }
 
-        let url = `/productos/nuevo?nombre=${encodeURIComponent(nombre)}&precio=${precio}&stock=${stock}&categoria=${encodeURIComponent(categoria || 'Gral')}&minimo=${minimo}`;
+        let productoData = {
+            nombre:nombre,
+            categoria:categoria || 'Gral',
+            precio: parseFloat(precio),
+            stock: parseInt(stock),
+            minimo: minimo ? parseInt(minimo): 2
+        };
 
-        fetch(url)
-            .then(r => r.text())
+        fetch("/productos/nuevo", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(productoData)
+        })
+            .then(r =>{
+                if (!r.ok) throw new Error("Error en la respuesta del servidor");
+                return r.text();
+            })
             .then(() => {
                 mostrarMensaje("Producto guardado correctamente");
                 mostrarFormulario(false);

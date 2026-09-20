@@ -67,35 +67,35 @@ public class ProductoController {
         return lista;
     }
 
-    @GetMapping("/nuevo")
-    public String nuevoProducto(
-            @RequestParam String nombre,
-            @RequestParam double precio,
-            @RequestParam int stock,
-            @RequestParam(defaultValue = "Gral") String categoria,
-            @RequestParam(defaultValue = "2") int minimo
-    ) throws Exception {
 
+    @PostMapping("/nuevo")
+    public String nuevoProducto(@RequestBody Map<String, Object> body) throws Exception {
         inicializarBaseDatos();
-        Connection con = DriverManager.getConnection(url, user, pass);
 
-        PreparedStatement ps = con.prepareStatement(
-                "INSERT INTO productos(nombre, categoria, precio, stock_actual, stock_minimo, proveedor) VALUES (?, ?, ?, ?, ?, ?)"
-        );
+        String nombre = body.get("nombre").toString();
+        String categoria = body.getOrDefault("categoria", "Gral").toString();
+        double precio = Double.parseDouble(body.get("precio").toString());
+        int stock = Integer.parseInt(body.get("stock").toString());
+        int minimo = body.containsKey("minimo") && !body.get("minimo").toString().isEmpty()
+                ? Integer.parseInt(body.get("minimo").toString()) : 2;
 
-        ps.setString(1, nombre);
-        ps.setString(2, categoria);
-        ps.setDouble(3, precio);
-        ps.setInt(4, stock);
-        ps.setInt(5, minimo);
-        ps.setString(6, "General");
+        try (Connection con = DriverManager.getConnection(url, user, pass);
+             PreparedStatement ps = con.prepareStatement(
+                     "INSERT INTO productos(nombre, categoria, precio, stock_actual, stock_minimo, proveedor) VALUES (?, ?, ?, ?, ?, ?)"
+             )) {
 
-        ps.executeUpdate();
-        con.close();
+            ps.setString(1, nombre);
+            ps.setString(2, categoria);
+            ps.setDouble(3, precio);
+            ps.setInt(4, stock);
+            ps.setInt(5, minimo);
+            ps.setString(6, "General");
+
+            ps.executeUpdate();
+        }
 
         return "OK";
     }
-
     @PostMapping("/vender/{id}")
     public String vender(@PathVariable int id) throws Exception {
         Connection con = DriverManager.getConnection(url, user, pass);
