@@ -104,6 +104,80 @@ public class ProductoController {
         }
     }
 
+    @PostMapping("/vender/{id}")
+    public String vender(@PathVariable int id) {
+        try (Connection con = getConnection();
+             PreparedStatement psSel = con.prepareStatement("SELECT nombre, precio, stock_actual FROM productos WHERE id = ?")) {
+
+            psSel.setInt(1, id);
+            ResultSet rs = psSel.executeQuery();
+
+            if (rs.next()) {
+                int stockActual = rs.getInt("stock_actual");
+                String nombre = rs.getString("nombre");
+                double precio = rs.getDouble("precio");
+
+                if (stockActual > 0) {
+                    try (PreparedStatement psUpd = con.prepareStatement("UPDATE productos SET stock_actual = stock_actual - 1 WHERE id = ?")) {
+                        psUpd.setInt(1, id);
+                        psUpd.executeUpdate();
+                    }
+
+                    try (PreparedStatement psVenta = con.prepareStatement("INSERT INTO ventas(producto_id, nombre_producto, precio) VALUES (?, ?, ?)")) {
+                        psVenta.setInt(1, id);
+                        psVenta.setString(2, nombre);
+                        psVenta.setDouble(3, precio);
+                        psVenta.executeUpdate();
+                    }
+                }
+            }
+            return "OK";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "ERROR: " + e.getMessage();
+        }
+    }
+
+    @PostMapping("/agregar/{id}")
+    public String agregarStock(@PathVariable int id) {
+        try (Connection con = getConnection();
+             PreparedStatement ps = con.prepareStatement("UPDATE productos SET stock_actual = stock_actual + 1 WHERE id = ?")) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
+            return "OK";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "ERROR: " + e.getMessage();
+        }
+    }
+
+    @PostMapping("/precio/{id}")
+    public String editarPrecio(@PathVariable int id, @RequestParam double precio) {
+        try (Connection con = getConnection();
+             PreparedStatement ps = con.prepareStatement("UPDATE productos SET precio = ? WHERE id = ?")) {
+            ps.setDouble(1, precio);
+            ps.setInt(2, id);
+            ps.executeUpdate();
+            return "OK";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "ERROR: " + e.getMessage();
+        }
+    }
+
+    @RequestMapping(value = "/eliminar/{id}", method = {RequestMethod.DELETE, RequestMethod.POST, RequestMethod.GET})
+    public String eliminarProducto(@PathVariable int id) {
+        try (Connection con = getConnection();
+             PreparedStatement ps = con.prepareStatement("DELETE FROM productos WHERE id = ?")) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
+            return "OK";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "ERROR: " + e.getMessage();
+        }
+    }
+
     @GetMapping("/resumen")
     public Map<String, Object> resumen() {
         inicializarBaseDatos();
